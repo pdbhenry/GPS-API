@@ -3,6 +3,7 @@ package com.example.gps.service.impl;
 import com.example.gps.model.Location;
 import com.example.gps.repository.GpsRepo;
 import com.example.gps.service.GpsService;
+import org.antlr.v4.runtime.misc.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -61,7 +62,35 @@ public class GpsServiceImpl implements GpsService {
     }
 
     @Override
-    public List<Location> searchLocation(String query) {
+    public Location closestLocationSlow(Long locationId) {
+        Location closestLocation = null;
+        Optional<Location> locationObj = gpsRepo.findById(locationId);
+
+        if (locationObj.isPresent()) {
+            Location location = locationObj.get();
+            double shortestDist = Integer.MAX_VALUE;
+            double latitude = location.getLatitude();
+            double longitude = location.getLongitude();
+            List<Location> allLocations = gpsRepo.findAll();
+
+            for (Location currLocation : allLocations) {
+                if (currLocation.getId().longValue() != locationId) {
+                    double currDistance = Math.hypot(latitude-currLocation.getLatitude(),
+                            longitude-currLocation.getLongitude());
+
+                    if (currDistance < shortestDist) {
+                        shortestDist = currDistance;
+                        closestLocation = currLocation;
+                    }
+                }
+            }
+        }
+
+        return closestLocation;
+    }
+
+    @Override
+    public Location closestLocation(Long locationId) {
         return null;
     }
 }

@@ -11,5 +11,6 @@ public interface GpsService {
     Location updateLocation(Long id, Location location);
     void deleteLocation(Long locationId);
     void deleteAllLocations();
-    List<Location> searchLocation(String query);
+    Location closestLocationSlow (Long locationId);
+    Location closestLocation (Long locationId);
 }

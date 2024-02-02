@@ -39,6 +39,17 @@ public class GpsController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
+    @GetMapping("/getClosestLocationSlow/{id}")
+    public ResponseEntity<Location> getClosestLocationSlow(@PathVariable Long id) {
+        Location closestLocation = gpsService.closestLocationSlow(id);
+
+        if (closestLocation == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(closestLocation, HttpStatus.FOUND);
+    }
+
     @PostMapping("/addLocation")
     public ResponseEntity<Location> addLocation(@RequestBody Location location) {
         Location locationObj = gpsService.saveLocation(location);
