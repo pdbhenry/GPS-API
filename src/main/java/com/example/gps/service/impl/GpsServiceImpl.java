@@ -3,7 +3,6 @@ package com.example.gps.service.impl;
 import com.example.gps.model.Location;
 import com.example.gps.repository.GpsRepo;
 import com.example.gps.service.GpsService;
-import org.antlr.v4.runtime.misc.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +33,18 @@ public class GpsServiceImpl implements GpsService {
     public Location findLocationById(Long locationId) {
         Optional<Location> locationObj = gpsRepo.findById(locationId);
         return locationObj.orElse(null);
+    }
+
+    @Override
+    public boolean findLocationByCoords(Location location) {
+        for (Location currLocation : gpsRepo.findAll()) {
+            if (currLocation.getLatitude() == location.getLatitude() &&
+                    currLocation.getLongitude() == location.getLongitude()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override

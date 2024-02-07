@@ -8,6 +8,9 @@ public interface GpsService {
     List<Location> findAllLocations();
     Location saveLocation(Location location);
     Location findLocationById(Long locationId);
+
+    boolean findLocationByCoords(Location location);
+
     Location updateLocation(Long id, Location location);
     void deleteLocation(Long locationId);
     void deleteAllLocations();
