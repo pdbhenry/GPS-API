@@ -3,11 +3,13 @@ package com.example.gps.controller;
 import com.example.gps.model.Location;
 import com.example.gps.service.GpsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.geo.Circle;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -58,6 +60,14 @@ public class GpsController {
 
         return new ResponseEntity<>(closestLocation, HttpStatus.FOUND);
     }
+
+    @GetMapping("/getLocationsWithinCircleSlow")
+    public ResponseEntity<ArrayList<Location>> getLocationsWithinCircle(@RequestBody Circle circle) {
+        ArrayList<Location> locsInCircle = gpsService.findLocsInCircle(circle);
+
+        return new ResponseEntity<>(locsInCircle, HttpStatus.OK);
+    }
+
 
     @PostMapping("/addLocation")
     public ResponseEntity<Location> addLocation(@RequestBody Location location) {

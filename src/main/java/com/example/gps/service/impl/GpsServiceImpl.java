@@ -4,8 +4,11 @@ import com.example.gps.model.Location;
 import com.example.gps.repository.GpsRepo;
 import com.example.gps.service.GpsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.geo.Circle;
 import org.springframework.stereotype.Service;
 
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,6 +48,22 @@ public class GpsServiceImpl implements GpsService {
         }
 
         return false;
+    }
+
+    @Override
+    public ArrayList<Location> findLocsInCircle(Circle circle) {
+        ArrayList<Location> locsInCircle = new ArrayList<Location>();
+
+        for (Location currLocation : gpsRepo.findAll()) {
+            Point2D.Double locPoint = new Point2D.Double(currLocation.getLatitude(), currLocation.getLongitude());
+            Point2D.Double circlePoint = new Point2D.Double(circle.getCenter().getX(), circle.getCenter().getY());
+
+            if (locPoint.distance(circlePoint) <= circle.getRadius().getValue()) {
+                locsInCircle.add(currLocation);
+            }
+        }
+
+        return locsInCircle;
     }
 
     @Override

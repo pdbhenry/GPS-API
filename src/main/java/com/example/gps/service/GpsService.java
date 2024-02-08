@@ -1,7 +1,9 @@
 package com.example.gps.service;
 
 import com.example.gps.model.Location;
+import org.springframework.data.geo.Circle;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public interface GpsService {
@@ -10,6 +12,8 @@ public interface GpsService {
     Location findLocationById(Long locationId);
 
     boolean findLocationByCoords(Location location);
+
+    ArrayList<Location> findLocsInCircle(Circle circle);
 
     Location updateLocation(Long id, Location location);
     void deleteLocation(Long locationId);
