@@ -1,15 +1,22 @@
 package com.example.gps.model;
 
+import lombok.Getter;
 import org.springframework.data.geo.Circle;
+import org.springframework.data.geo.Point;
+import org.springframework.data.util.Pair;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Map;
+
 
 public class QuadTree {
-    public static final int mapSize = 1000;
-    public static final int nodeCapacity = 1;
+    public final int mapSize;
+    public final int nodeCapacity;
 
     Node root;
 
@@ -35,7 +42,24 @@ public class QuadTree {
         }
     }
 
-    public QuadTree() {
+    private class LocDistPair {
+        Location loc;
+        double dist;
+
+        LocDistPair (Location loc, double dist) {
+            this.loc = loc;
+            this.dist = dist;
+        }
+
+        public void set(Location loc, double dist) {
+            this.loc = loc;
+            this.dist = dist;
+        }
+    }
+
+    public QuadTree(int mapSize, int nodeCapacity) {
+        this.mapSize = mapSize;
+        this.nodeCapacity = nodeCapacity;
         root = new Node(0, 0, mapSize);
     }
 
@@ -245,6 +269,82 @@ public class QuadTree {
         return locsInCircle;
     }
 
+    public Location getNearestLocationToLocation(Location loc) {
+        if (locationExists(loc)) {
+            Point2D.Double point = new Point2D.Double(loc.getLatitude(), loc.getLongitude());
+            return getNearestLocationToPoint(point);
+        }
+
+        return null;
+    }
+
+    public Location getNearestLocationToPoint(Point2D.Double point) {
+        LocDistPair closestLoc = new LocDistPair(null, Double.MAX_VALUE);
+        closestLoc = getNearestLocationToPoint(root, point, closestLoc);
+
+        if (closestLoc.loc == null) {
+            return null;
+        }
+
+        return closestLoc.loc;
+    }
+
+    private LocDistPair getNearestLocationToPoint(Node currNode, Point2D.Double point, LocDistPair closestLoc) {
+        if (!currNode.divided) {
+            for (Location currLoc : currNode.locations) {
+                double currDist = point.distance(currLoc.getLatitude(), currLoc.getLongitude());
+                if (currDist < closestLoc.dist && currDist > 0) {
+                    closestLoc.set(currLoc, currDist);
+                }
+            }
+        } else {
+            ArrayList<Node> subNodes = orderSubNodes(currNode, point);
+            for (Node currSubNode : subNodes) {
+                if (getPointToRectDist(point, currSubNode.rect) < closestLoc.dist) {
+                    closestLoc = getNearestLocationToPoint(currSubNode, point, closestLoc);
+                }
+            }
+        }
+
+        return closestLoc;
+    }
+
+    //Returns an ArrayList of currNodes four sub-nodes, in ascending order of distance to a point.
+    private ArrayList<Node> orderSubNodes(Node currNode, Point2D.Double point) {
+        ArrayList<Node> subNodes = new ArrayList<Node>();
+        subNodes.add(currNode.nwNode);
+        subNodes.add(currNode.neNode);
+        subNodes.add(currNode.swNode);
+        subNodes.add(currNode.seNode);
+
+        ArrayList<Double> dists = new ArrayList<Double>();
+        for (int i = 0; i < 4; i++) {
+            dists.add(getPointToRectDist(point, subNodes.get(i).rect));
+        }
+
+        boolean changes = false;
+
+        for (int i = 0; i < 3; i++) {
+            changes = false;
+            for (int j = 0; j < 3 - i; j++) {
+                if (dists.get(j) > dists.get(j + 1)) {
+                    Double tempDist = dists.get(j);
+                    dists.set(j, dists.get(j + 1));
+                    dists.set(j + 1, tempDist);
+                    Node tempNode = subNodes.get(j);
+                    subNodes.set(j, subNodes.get(j + 1));
+                    subNodes.set(j + 1, tempNode);
+
+                    changes = true;
+                }
+            }
+
+            if (!changes) break;
+        }
+
+        return subNodes;
+    }
+
     private String pickNodeHelper(double locX, double locY, Rectangle2D.Double rect) throws Exception {
         if ((locX <= (rect.getX() + (double) rect.width / 2)) && (locY <= (rect.getY() + (double) rect.height / 2))) {
             return "NW";
@@ -273,6 +373,13 @@ public class QuadTree {
         double radius = circle.getRadius().getValue();
 
         return ((xD * xD + yD * yD) <= (radius * radius));
+    }
+
+    private double getPointToRectDist(Point2D.Double point, Rectangle2D.Double rect) {
+        double distX = Math.max(rect.getX() - point.getX(), Math.max(0, point.getX() - (rect.getX() + rect.width)));
+        double distY = Math.max(rect.getY() - point.getY(), Math.max(0, point.getY() - (rect.getY() + rect.height)));
+        double dist = Math.sqrt(distX * distX + distY * distY);
+        return dist;
     }
 }
 

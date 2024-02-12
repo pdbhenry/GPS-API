@@ -1,6 +1,8 @@
 package com.example.gps.service.impl;
 
 import com.example.gps.model.Location;
+import com.example.gps.model.Names;
+import com.example.gps.model.QuadTree;
 import com.example.gps.repository.GpsRepo;
 import com.example.gps.service.GpsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +17,10 @@ import java.util.Optional;
 @Service
 public class GpsServiceImpl implements GpsService {
 
+    public static final int mapSize = 1000;
     private GpsRepo gpsRepo;
+    private QuadTree quadTree = new QuadTree(mapSize, 1);
+    private Names names;
 
     @Autowired
     public GpsServiceImpl(GpsRepo gpsRepo) {
@@ -29,7 +34,19 @@ public class GpsServiceImpl implements GpsService {
 
     @Override
     public Location saveLocation(Location location) {
-        return gpsRepo.save(location);
+        Location loc = gpsRepo.save(location);
+        quadTree.insert(location);
+        return loc;
+    }
+
+    @Override
+    public void populateTable(int numLocs) {
+        for (int i = 0; i < numLocs; i++) {
+            Location loc = new Location();
+            loc.setName(names.getRandomName());
+            loc.setRandomCoords(mapSize);
+            saveLocation(loc);
+        }
     }
 
     @Override
@@ -39,7 +56,7 @@ public class GpsServiceImpl implements GpsService {
     }
 
     @Override
-    public boolean findLocationByCoords(Location location) {
+    public boolean findLocationByCoordsSlow(Location location) {
         for (Location currLocation : gpsRepo.findAll()) {
             if (currLocation.getLatitude() == location.getLatitude() &&
                     currLocation.getLongitude() == location.getLongitude()) {
@@ -51,7 +68,12 @@ public class GpsServiceImpl implements GpsService {
     }
 
     @Override
-    public ArrayList<Location> findLocsInCircle(Circle circle) {
+    public boolean findLocationByCoords(Location location) {
+        return quadTree.locationExists(location);
+    }
+
+    @Override
+    public ArrayList<Location> findLocsInCircleSlow(Circle circle) {
         ArrayList<Location> locsInCircle = new ArrayList<Location>();
 
         for (Location currLocation : gpsRepo.findAll()) {
@@ -67,13 +89,22 @@ public class GpsServiceImpl implements GpsService {
     }
 
     @Override
+    public ArrayList<Location> findLocsInCircle(Circle circle) {
+        return quadTree.getNodesWithinCircle(circle);
+    }
+
+    @Override
     public Location updateLocation(Long id, Location location) {
         Optional<Location> locationOptional = gpsRepo.findById(id);
         if (locationOptional.isPresent()) {
             Location location1 = locationOptional.get();
+            quadTree.remove(location1);
+
             location1.setName(location.getName());
             location1.setLatitude(location.getLatitude());
             location1.setLongitude(location.getLongitude());
+            quadTree.insert(location);
+
             return gpsRepo.save(location1);
         }
 
@@ -83,12 +114,17 @@ public class GpsServiceImpl implements GpsService {
     @Override
     public void deleteLocation(Long locationId) {
         Optional<Location> locationObj = gpsRepo.findById(locationId);
-        locationObj.ifPresent(location -> gpsRepo.delete(location));
+        if (locationObj.isPresent()) {
+            Location loc = locationObj.get();
+            gpsRepo.delete(loc);
+            quadTree.remove(loc);
+        }
     }
 
     @Override
     public void deleteAllLocations() {
         gpsRepo.deleteAll();
+        quadTree = new QuadTree();
     }
 
     @Override
@@ -121,6 +157,14 @@ public class GpsServiceImpl implements GpsService {
 
     @Override
     public Location closestLocation(Long locationId) {
-        return null;
+        Location closestLoc = null;
+        Optional<Location> locationObj = gpsRepo.findById(locationId);
+
+        if (locationObj.isPresent()) {
+            Location loc = locationObj.get();
+            closestLoc = quadTree.getNearestLocationToLocation(loc);
+        }
+
+        return closestLoc;
     }
 }

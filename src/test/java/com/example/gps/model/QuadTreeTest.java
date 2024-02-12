@@ -95,4 +95,58 @@ public class QuadTreeTest {
         assert(quadTree.locationExists(loc3));
     }
 
+    @Test
+    public void getNearestSimple() {
+        Location loc1 = new Location("McDonald's", 230.0, 10.0);
+        Location loc2 = new Location("Burger King", 100.0, 140.0);
+        Location loc3 = new Location("Long John Silver's", 270.0, 270.0);
+        Location loc4 = new Location("Chipotle", 550.0, 550.0);
+
+        quadTree.insert(loc1);
+        quadTree.insert(loc2);
+        quadTree.insert(loc3);
+        quadTree.insert(loc4);
+
+        Location nearestLoc = quadTree.getNearestLocationToLocation(loc4);
+        assert(nearestLoc.equals(loc3));
+    }
+
+    @Test
+    public void getNearestDeep() {
+        Location loc1 = new Location("McDonald's", 230.0, 10.0);
+        Location loc2 = new Location("Burger King", 230.1, 10.0);
+        Location loc3 = new Location("Chipotle", 550.0, 550.0);
+
+        quadTree.insert(loc1);
+        quadTree.insert(loc2);
+        quadTree.insert(loc3);
+
+        Location nearestLoc = quadTree.getNearestLocationToLocation(loc1);
+        assert(nearestLoc.equals(loc2));
+    }
+
+    @Test
+    public void getNearestAcrossQuadrants() {
+        Location loc1 = new Location("McDonald's", 230.0, 10.0);
+        Location loc2 = new Location("Burger King", 200.0, 15.0);
+        Location loc3 = new Location("Chipotle", 255.0, 10.0);
+
+        quadTree.insert(loc1);
+        quadTree.insert(loc2);
+        quadTree.insert(loc3);
+
+        Location nearestLoc = quadTree.getNearestLocationToLocation(loc1);
+        assert(nearestLoc.equals(loc3));
+    }
+
+    @Test
+    public void getNearestNoResult() {
+        Location loc1 = new Location("McDonald's", 230.0, 10.0);
+
+        quadTree.insert(loc1);
+
+        Location nearestLoc = quadTree.getNearestLocationToLocation(loc1);
+        assert(nearestLoc == null);
+    }
+
 }

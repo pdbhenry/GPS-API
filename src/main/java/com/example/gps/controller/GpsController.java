@@ -32,7 +32,7 @@ public class GpsController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @GetMapping("/searchSlow/{id}")
+    @GetMapping("/search/{id}")
     public ResponseEntity<Location> searchLocation(@PathVariable Long id) {
         Location locationObj = gpsService.findLocationById(id);
         if (locationObj != null) {
@@ -77,6 +77,11 @@ public class GpsController {
 
         Location locationObj = gpsService.saveLocation(location);
         return new ResponseEntity<>(locationObj, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/populateLocations")
+    public ResponseEntity<HttpStatus> populateLocations() {
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PutMapping("/updateLocation/{id}")

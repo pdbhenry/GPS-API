@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Random;
+
 
 @Data
 @NoArgsConstructor
@@ -31,5 +33,11 @@ public class Location {
         this.name = name;
         this.latitude = latitude;
         this.longitude = longitude;
+    }
+
+    public void setRandomCoords(int mapSize) {
+        Random r = new Random();
+        this.setLatitude(r.nextDouble(mapSize));
+        this.setLongitude(r.nextDouble(mapSize));
     }
 }
