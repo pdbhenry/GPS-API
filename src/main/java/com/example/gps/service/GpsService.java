@@ -10,6 +10,8 @@ public interface GpsService {
     List<Location> findAllLocations();
     Location saveLocation(Location location);
 
+    void saveToQuadtree(Location location);
+
     void populateTable(int numLocs);
 
     Location findLocationById(Long locationId);
@@ -23,8 +25,12 @@ public interface GpsService {
     ArrayList<Location> findLocsInCircleSlow(Circle circle);
 
     Location updateLocation(Long id, Location location);
+
     void deleteLocation(Long locationId);
+
     void deleteAllLocations();
-    Location closestLocationSlow (Long locationId);
-    Location closestLocation (Long locationId);
+
+    Location getClosestLocationSlow(Long locationId);
+
+    Location getClosestLocation(Long locationId);
 }

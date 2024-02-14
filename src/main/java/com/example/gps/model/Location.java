@@ -37,7 +37,11 @@ public class Location {
 
     public void setRandomCoords(int mapSize) {
         Random r = new Random();
-        this.setLatitude(r.nextDouble(mapSize));
-        this.setLongitude(r.nextDouble(mapSize));
+
+        //Generate random coords within map boundaries, rounded to 2 decimal places
+        double randLat = Math.round(r.nextDouble(mapSize) * 100) / 100.0;
+        double randLong = Math.round(r.nextDouble(mapSize) * 100) / 100.0;
+        this.setLatitude(randLat);
+        this.setLongitude(randLong);
     }
 }

@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class QuadTreeTest {
 
-    QuadTree quadTree = new QuadTree();
+    QuadTree quadTree = new QuadTree(1000, 1);
 
     @Test
     public void insertIntoQuadTree() {

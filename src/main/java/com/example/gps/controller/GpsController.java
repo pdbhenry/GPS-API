@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 public class GpsController {
@@ -33,7 +34,7 @@ public class GpsController {
     }
 
     @GetMapping("/search/{id}")
-    public ResponseEntity<Location> searchLocation(@PathVariable Long id) {
+    public ResponseEntity<Location> searchLocById(@PathVariable Long id) {
         Location locationObj = gpsService.findLocationById(id);
         if (locationObj != null) {
             return new ResponseEntity<>(locationObj, HttpStatus.OK);
@@ -42,7 +43,16 @@ public class GpsController {
     }
 
     @GetMapping("/searchSlow")
-    public ResponseEntity<Location> searchLocation(@RequestBody Location location) {
+    public ResponseEntity<Location> searchLocByLocSlow(@RequestBody Location location) {
+        if (gpsService.findLocationByCoordsSlow(location)) {
+            return new ResponseEntity<>(HttpStatus.IM_USED);
+        }
+
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Location> searchLocByLoc(@RequestBody Location location) {
         if (gpsService.findLocationByCoords(location)) {
             return new ResponseEntity<>(HttpStatus.IM_USED);
         }
@@ -50,9 +60,9 @@ public class GpsController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @GetMapping("/getClosestLocationSlow/{id}")
-    public ResponseEntity<Location> getClosestLocationSlow(@PathVariable Long id) {
-        Location closestLocation = gpsService.closestLocationSlow(id);
+    @GetMapping("/getClosestLocSlow/{id}")
+    public ResponseEntity<Location> getClosestLocSlow(@PathVariable Long id) {
+        Location closestLocation = gpsService.getClosestLocationSlow(id);
 
         if (closestLocation == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -61,15 +71,34 @@ public class GpsController {
         return new ResponseEntity<>(closestLocation, HttpStatus.FOUND);
     }
 
-    @GetMapping("/getLocationsWithinCircleSlow")
-    public ResponseEntity<ArrayList<Location>> getLocationsWithinCircle(@RequestBody Circle circle) {
+    @GetMapping("/getClosestLoc/{id}")
+    public ResponseEntity<Location> getClosestLoc(@PathVariable Long id) {
+        Location closestLocation = gpsService.getClosestLocation(id);
+
+        if (closestLocation == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(closestLocation, HttpStatus.FOUND);
+    }
+
+    @GetMapping("/getLocsWithinCircleSlow")
+    public ResponseEntity<ArrayList<Location>> getLocsWithinCircleSlow(@RequestBody Map<String, Double> circleMap) {
+        Circle circle = new Circle(circleMap.get("cX"), circleMap.get("cY"), circleMap.get("r"));
+        ArrayList<Location> locsInCircle = gpsService.findLocsInCircleSlow(circle);
+
+        return new ResponseEntity<>(locsInCircle, HttpStatus.OK);
+    }
+
+    @GetMapping("/getLocsWithinCircle")
+    public ResponseEntity<ArrayList<Location>> getLocsWithinCircle(@RequestBody Map<String, Double> circleMap) {
+        Circle circle = new Circle(circleMap.get("cX"), circleMap.get("cY"), circleMap.get("r"));
         ArrayList<Location> locsInCircle = gpsService.findLocsInCircle(circle);
 
         return new ResponseEntity<>(locsInCircle, HttpStatus.OK);
     }
 
-
-    @PostMapping("/addLocation")
+    @PostMapping("/addLoc")
     public ResponseEntity<Location> addLocation(@RequestBody Location location) {
         if (gpsService.findLocationByCoords(location)) {
             return new ResponseEntity<>(HttpStatus.IM_USED);
@@ -79,12 +108,22 @@ public class GpsController {
         return new ResponseEntity<>(locationObj, HttpStatus.CREATED);
     }
 
-    @PostMapping("/populateLocations")
-    public ResponseEntity<HttpStatus> populateLocations() {
+    @PostMapping("/populateLocs/{numLocs}")
+    public ResponseEntity<HttpStatus> populateLocs(@PathVariable int numLocs) {
+        gpsService.populateTable(numLocs);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PutMapping("/updateLocation/{id}")
+    @PostMapping("/populateQuadtree")
+    public ResponseEntity<HttpStatus> populateQuadtree() {
+        for (Location loc : gpsService.findAllLocations()) {
+            gpsService.saveToQuadtree(loc);
+        }
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PutMapping("/updateLoc/{id}")
     public ResponseEntity<HttpStatus> updateLocation(@PathVariable Long id, @RequestBody Location location) {
         Location updatedLocation = gpsService.updateLocation(id, location);
         if (updatedLocation != null) {
@@ -94,13 +133,13 @@ public class GpsController {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @DeleteMapping("/deleteLocation/{id}")
+    @DeleteMapping("/deleteLoc/{id}")
     public ResponseEntity<HttpStatus> deleteLocation(@PathVariable Long id) {
         gpsService.deleteLocation(id);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @DeleteMapping("/deleteAllLocations")
+    @DeleteMapping("/deleteAllLocs")
     public ResponseEntity<HttpStatus> deleteAllLocations()
     {
         gpsService.deleteAllLocations();

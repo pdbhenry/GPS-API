@@ -20,7 +20,7 @@ public class GpsServiceImpl implements GpsService {
     public static final int mapSize = 1000;
     private GpsRepo gpsRepo;
     private QuadTree quadTree = new QuadTree(mapSize, 1);
-    private Names names;
+    private Names names = new Names();
 
     @Autowired
     public GpsServiceImpl(GpsRepo gpsRepo) {
@@ -35,8 +35,13 @@ public class GpsServiceImpl implements GpsService {
     @Override
     public Location saveLocation(Location location) {
         Location loc = gpsRepo.save(location);
-        quadTree.insert(location);
+        saveToQuadtree(location);
         return loc;
+    }
+
+    @Override
+    public void saveToQuadtree(Location location) {
+        quadTree.insert(location);
     }
 
     @Override
@@ -124,11 +129,11 @@ public class GpsServiceImpl implements GpsService {
     @Override
     public void deleteAllLocations() {
         gpsRepo.deleteAll();
-        quadTree = new QuadTree();
+        quadTree = new QuadTree(mapSize, 1);
     }
 
     @Override
-    public Location closestLocationSlow(Long locationId) {
+    public Location getClosestLocationSlow(Long locationId) {
         Location closestLocation = null;
         Optional<Location> locationObj = gpsRepo.findById(locationId);
 
@@ -156,7 +161,7 @@ public class GpsServiceImpl implements GpsService {
     }
 
     @Override
-    public Location closestLocation(Long locationId) {
+    public Location getClosestLocation(Long locationId) {
         Location closestLoc = null;
         Optional<Location> locationObj = gpsRepo.findById(locationId);
 
