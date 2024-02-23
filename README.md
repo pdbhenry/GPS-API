@@ -10,9 +10,9 @@ implemented for its ability to organize spatial data. This significantly reduces
 counterpart (getLocsWithinCircle vs. getLocsWithinCircleSlow) in which searches are made simply by iterating through the repository's records.
 
 <br>
-<p align="center" width="600">
-  <img src="https://github.com/pdbhenry/GPS-API/assets/36090515/c16f567d-7fec-4a4e-bc29-9357c3d983a0" width="300"/>
-  <img src="https://github.com/pdbhenry/GPS-API/assets/36090515/6fb965eb-1fe0-491e-8d96-460cc0f77aa9" width="288"/>
+<p align="center">
+  <img src="https://github.com/pdbhenry/GPS-API/assets/36090515/c16f567d-7fec-4a4e-bc29-9357c3d983a0" width="375"/>
+  <img src="https://github.com/pdbhenry/GPS-API/assets/36090515/6fb965eb-1fe0-491e-8d96-460cc0f77aa9" width="360"/>
 </p>
 
 <h6 align="center">
